@@ -1,0 +1,3 @@
+# SoundDrop: Send files over longitudinal air waves...
+### Final Project for COMS 4995.007: Design Using C++ (Spring 2017) at Columbia University
+Mick Lin, James Young, Jason Zhao.

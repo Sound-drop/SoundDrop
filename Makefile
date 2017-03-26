@@ -26,4 +26,5 @@ bin/sound: $(PA_STATIC_LIB) $(PA_INCLUDE_DIR) $(SOUND_OBJS)
 
 
 clean:
-	rm -rf send_ip
+	rm -rf send_ip receiver/*.o bin/sound
+

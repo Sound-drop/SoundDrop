@@ -288,7 +288,7 @@ int main(void)
         //FILE  *fid;
         //fid = fopen("recorded.raw", "wb");
         WAV_Writer writer;
-        int ret = Audio_WAV_OpenWriter( &writer, "recorded.wav", 44100, 1 );
+        int ret = Audio_WAV_OpenWriter( &writer, "recorded.wav", 44100, 2 );
         if( ret < 0)
         {
             printf("Could not open file.");

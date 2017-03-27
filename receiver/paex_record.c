@@ -279,7 +279,7 @@ int main(void)
 
     average = average / (double)numSamples;
 
-    printf("sample max amplitude = "PRINTF_S_FORMAT"\n", max );
+    printf("sample max amplitude = " PRINTF_S_FORMAT "\n", max );
     printf("sample average = %lf\n", average );
 
     /* Write recorded data to a file. */

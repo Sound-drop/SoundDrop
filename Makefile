@@ -1,4 +1,5 @@
 CXX = clang++
+
 CFLAGS = -O2 -Wall --std=c++14
 
 LIBRARY_SRC = libs
@@ -17,13 +18,17 @@ all: send_ip
 
 send_ip: send_ip.cpp
 	$(CXX) $(CFLAGS) $< $(PA_STATIC_LIB) -I$(PA_INCLUDE_DIR) -o $@
-
-sound: bin-stamp bin/sound
-
-
+sound:bin/sound
 bin/sound: $(PA_STATIC_LIB) $(PA_INCLUDE_DIR) $(SOUND_OBJS) 
-	$(CXX) -o $@ $(CFLAGS) $(SOUND_OBJS) $(PA_STATIC_LIB) $(LIBS)
+	$(CXX) -o $@ $(CFLAGS) receiver/*.c $< $(PA_STATIC_LIB) -I$(PA_INCLUDE_DIR) $(LIBS)
 
+%.o: %.c
+	$(CXX) $(CFLAGS) -c $< $(PA_STATIC_LIB) -I$(PA_INCLUDE_DIR) -o $@
+# receiver/write_wav.o: receiver/write_wav.h
+# 	$(CXX) $(CFLAGS) -c receiver/write_wav.c -Ireceiver -o $@
+
+# receiver/paex_record.o: receiver/paex_record.c
+# 	$(CXX) $(CFLAGS) -c $< $(PA_STATIC_LIB) -I$(PA_INCLUDE_DIR) -o $@
 
 clean:
 	rm -rf send_ip receiver/*.o bin/sound

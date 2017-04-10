@@ -1,51 +1,61 @@
 #include <stdio.h>
 #include <string.h>
+#include <math.h>
 #include <ifaddrs.h>
 #include <sys/types.h>
 #include <netinet/in.h> 
 #include <arpa/inet.h>
 
 #include <iostream>
+#include <sstream>
+#include <string>
+#include <vector>
 
-#include "portaudio.h"
 #include "protocol.h"
+#include "portaudio.h"
+#include "aquila.h"
 
 using namespace std;
 
-static int paCallback(const void                      *inputBuffer,
-                      void                            *outputBuffer,
-                      unsigned long                   framesPerBuffer,
-                      const PaStreamCallbackTimeInfo  *timeInfo,
-                      PaStreamCallbackFlags           statusFlags,
-                      void                            *userData) {
+static int paCallback( const void                      *inputBuffer,
+					   void                            *outputBuffer,
+					   unsigned long                   framesPerBuffer,
+					   const PaStreamCallbackTimeInfo  *timeInfo,
+					   PaStreamCallbackFlags           statusFlags,
+					   void                            *userData) {
 
-	int numFrames, finished;
 	SDData *data = (SDData *) userData;
 	float *out = (float *) outputBuffer;
-	(void) inputBuffer; /* Prevent "unused variable" warnings. */
+	int finished = 0;
 
-	/* Are we almost at end. */
-	if (data->sampsToGo < framesPerBuffer) {
-		numFrames = data->sampsToGo;
-		finished = 1;
-	}
-	else {
-		numFrames = framesPerBuffer;
-		finished = 0;
+	/* avoid unused variable warnings */
+	(void) inputBuffer;
+	(void) timeInfo;
+	(void) statusFlags;
+
+	for(int i = 0; i < framesPerBuffer; i++)
+	{
+		float val = 0;
+		for (float freq : data->sine[data->phase]) {
+			val += (float) sin((float) data->phase / freq);
+		}
+
+		*out++ = val; /* left */
+		*out++ = val; /* right */
+		data->phase += 1;
 	}
 
-	for (int i = 0; i < numFrames; i++) {
-		*out++ = GeneratePinkNoise( &data->leftPink );
-		*out++ = GeneratePinkNoise( &data->rightPink );
-	}
-
-	data->sampsToGo -= numFrames;
+	if (--(data->total_frames) <= 0) finished = 1;
 
 	return finished;
 }
 
-string getIP() {
-	string addr;
+typedef struct { 
+	uint8_t n[4]; 
+} IP;
+
+IP getIP() {
+	string str_addr;
 	struct ifaddrs *ifAddrStruct;
 
 	getifaddrs(&ifAddrStruct);
@@ -58,7 +68,7 @@ string getIP() {
 
 			// Discard localhost
 			if (strcmp(str, "127.0.0.1") != 0) {
-				addr = str;
+				str_addr = str;
 			}
 		}
 	}
@@ -67,38 +77,79 @@ string getIP() {
 		freeifaddrs(ifAddrStruct);
 	}
 
+	cout << str_addr << endl;
+
+	/* Convert string ip address to int */
+	IP addr;
+	stringstream ss(str_addr);
+	string tok;
+
+	int i = 0;
+	while (getline(ss, tok, '.')) {
+		addr.n[i++] = (uint8_t) stoi(tok, nullptr);
+	}
+
 	return addr;
 }
 
 int main (int argc, char **argv) {
-	string addr = getIP();
-	int dataLength = addr.size() - 3;
-	cout << "IPv4 Address: " << addr << endl;
-
-	// Initialize PortAudio components to send audio
+	/* Initialize PortAudio components to send audio */
 	PaStream*           stream;
 	PaError             err;
-	SDData              data;
 	PaStreamParameters  outParams;
-	int                 totalSamples;
-	static const double SR  = 44100.0;
-	static const int    FPB = 2048; /* Frames per buffer: 46 ms buffers. */
+	static const double SR   = 44100.0; /* Sample rate: 44100 Hz */
+	static const int    FPB  = 512;     /* Frames per buffer: 46 ms buffers. */
+	static const float  RATE = 0.1;     /* Transmission rate: 10 blocks / sec. */
 
-	data.samplesToGo = totalSamples = 0.5 * dataLength * SR; /* Half second pulse for each number */
+	/* Get data to send */
+	IP addr = getIP();
+	void *raw_data = (void *) &addr; // TODO: Wrap this all in a class..
+	int words = sizeof(IP) / 2;
+
+	cout << "Transmitting " << words * 2 << " bytes..." << endl;
+
+	words += 2; /* size of start and end chirp */
+
+	/* Initialze SoundDrop struct */
+	SDData data;
+	data.total_frames = static_cast<float>(SR * RATE * ((float) words) / (float) FPB);
+	data.phase = 0;
+
+	for (int j = 0; j < SR * RATE; j++) {
+		data.sine.push_back({chirp}); /* Start chirp */
+	}
+
+	uint16_t *ptr = (uint16_t *) raw_data;
+	for (int i = 0; i < words - 2; i++, ptr++) {
+
+		vector<float> data_point;
+		for (int j = 0; j < SR * RATE; j++) {
+
+			for (uint32_t x = 1, y = 0; x <= pow(2, 15); x *= 2, y++) {
+				if (*ptr & x) {
+					data_point.push_back(encoder[y]);
+				}
+			}
+
+			data.sine.push_back(move(data_point));
+		}
+	}
+	
+	for (int j = 0; j < SR * RATE; j++) {
+		data.sine.push_back({chirp}); /* End chirp */
+	}
 
 	// TODO: Not modern C++ idiomatic, wrap with class handler
 	err = Pa_Initialize();
 	if (err != paNoError) goto error;
 
 	outParams.device = Pa_GetDefaultOutputDevice(); /* Take the default output device. */
-	if (outParams.device == paNoDevice) {
-		perror("No default output device");
-		goto error;
-	}
 	outParams.channelCount = 2;                     /* Stereo output, most likely supported. */
 	outParams.hostApiSpecificStreamInfo = NULL;
 	outParams.sampleFormat = paFloat32;             /* 32 bit floating point output. */
 	outParams.suggestedLatency = Pa_GetDeviceInfo(outParams.device)->defaultLowOutputLatency;
+
+	cout << "Starting audio..." << endl;
 
 	err = Pa_OpenStream(&stream, NULL, &outParams, SR, FPB, paClipOff, paCallback, &data);
 	if (err != paNoError) goto error;

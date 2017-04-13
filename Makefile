@@ -6,13 +6,15 @@ PA_STATIC_LIB = $(LIBRARY_SRC)/portaudio/lib/.libs/libportaudio.a
 PA_INCLUDE_DIR = $(LIBRARY_SRC)/portaudio/include
 AQ_STATIC_LIB = $(LIBRARY_SRC)/aquila/build/libAquila.a
 AQ_INCLUDE_DIR = $(LIBRARY_SRC)/aquila/aquila
+LIBSSH_STATIC_LIB = $(LIBRARY_SRC)/libssh/build/src/libssh.dylib # same as static
+LIBSSH_INCLUDE_DIR = $(LIBRARY_SRC)/libssh/include
 
-INCLUDES = -I$(PA_INCLUDE_DIR) -I$(AQ_INCLUDE_DIR)
-STATIC_LIBS = $(PA_STATIC_LIB) $(AQ_STATIC_LIB)
+INCLUDES = -I$(PA_INCLUDE_DIR) -I$(AQ_INCLUDE_DIR) -I$(LIBSSH_INCLUDE_DIR)
+STATIC_LIBS = $(PA_STATIC_LIB) $(AQ_STATIC_LIB) $(LIBSSH_STATIC_LIB)
 
 FLAGS = -framework CoreAudio -framework AudioToolbox -framework AudioUnit -framework Carbon
 
-all: send_ip
+all: send_ip test transfer
 
 send_ip: send_ip.cpp
 	$(CXX) $(CXXFLAGS) $< $(STATIC_LIBS) $(INCLUDES) $(FLAGS) -o $@
@@ -20,5 +22,8 @@ send_ip: send_ip.cpp
 test: test.cpp
 	$(CXX) $(CXXFLAGS) $< $(STATIC_LIBS) $(INCLUDES) $(FLAGS) -o $@
 
+transfer: transfer.cpp
+	$(CXX) $(CXXFLAGS) $< $(STATIC_LIBS) $(INCLUDES) $(FLAGS) -o $@
+
 clean:
-	rm -rf send_ip
+	rm -rf send_ip test transfer send_ip.dSYM test.dSYM transfer.dSYM

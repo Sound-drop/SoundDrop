@@ -288,7 +288,7 @@ int main(void)
         //FILE  *fid;
         //fid = fopen("recorded.raw", "wb");
         WAV_Writer writer;
-        int ret = Audio_WAV_OpenWriter( &writer, "recorded.wav", 44100, 1 );
+        int ret = Audio_WAV_OpenWriter( &writer, "recorded.wav", 44100, 2 );
         if( ret < 0)
         {
             printf("Could not open file.");
@@ -300,51 +300,12 @@ int main(void)
             ret =  Audio_WAV_WriteShorts( &writer, data.recordedSamples, numSamples );
             ret =  Audio_WAV_CloseWriter( &writer );
             if( ret < 0 ) printf("write error.");
-            printf("Wrote data to 'recorded.raw'\n");
+            printf("Wrote data to 'recorded.wav'\n");
         }
     }
 #endif
 
-    /* Playback recorded data.  -------------------------------------------- */
-    data.frameIndex = 0;
-
-    outputParameters.device = Pa_GetDefaultOutputDevice(); /* default output device */
-    if (outputParameters.device == paNoDevice) {
-        fprintf(stderr,"Error: No default output device.\n");
-        goto done;
-    }
-    outputParameters.channelCount = 2;                     /* stereo output */
-    outputParameters.sampleFormat =  PA_SAMPLE_TYPE;
-    outputParameters.suggestedLatency = Pa_GetDeviceInfo( outputParameters.device )->defaultLowOutputLatency;
-    outputParameters.hostApiSpecificStreamInfo = NULL;
-
-    printf("\n=== Now playing back. ===\n"); fflush(stdout);
-    err = Pa_OpenStream(
-              &stream,
-              NULL, /* no input */
-              &outputParameters,
-              SAMPLE_RATE,
-              FRAMES_PER_BUFFER,
-              paClipOff,      /* we won't output out of range samples so don't bother clipping them */
-              playCallback,
-              &data );
-    if( err != paNoError ) goto done;
-
-    if( stream )
-    {
-        err = Pa_StartStream( stream );
-        if( err != paNoError ) goto done;
-        
-        printf("Waiting for playback to finish.\n"); fflush(stdout);
-
-        while( ( err = Pa_IsStreamActive( stream ) ) == 1 ) Pa_Sleep(100);
-        if( err < 0 ) goto done;
-        
-        err = Pa_CloseStream( stream );
-        if( err != paNoError ) goto done;
-        
-        printf("Done.\n"); fflush(stdout);
-    }
+    
 
 done:
     Pa_Terminate();

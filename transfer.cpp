@@ -1,7 +1,6 @@
 #include <iostream>
 #include <string>
-#include "portaudio.h"
-#include "aquila.h"
+#include <cstdlib>
 
 #define LIBSSH_STATIC 1 // needed for library linking per instruction
 #include <libssh/libssh.h>
@@ -9,19 +8,20 @@
 using namespace std;
 
 int main (int argc, char **argv) {
-	// check arguments
+	// direct system call to run a secure copy (scp)
+
+	string remote, path, command;
+
 	if (argc != 3) {
-        cout << "Usage: ./transfer <DESTINATION> <FILE_PATH>" << endl;
+        cout << "Usage: ./transfer <USERNAME@REMOTE_ADDRESS> <FILE_PATH>" << endl;
         return 1;
     }
 
-    ssh_session my_ssh_session = ssh_new();
-    cout << "SSH session created" << endl;
-  	if (my_ssh_session == NULL)
-    	return 1;
+    remote = argv[1];
+    path = argv[2];
+    command = "scp -i ~/.ssh/sounddrop " + remote + ":" + path + " . ";subl
 
-  	ssh_free(my_ssh_session);
-  	cout << "SSH session ended" << endl;
+    system(command.c_str());
 
-	return 0;
+    return 0;
 }

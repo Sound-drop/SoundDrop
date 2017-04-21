@@ -2,9 +2,6 @@
 #include <string>
 #include <cstdlib>
 
-#define LIBSSH_STATIC 1 // needed for library linking per instruction
-#include <libssh/libssh.h>
-
 using namespace std;
 
 int main (int argc, char **argv) {

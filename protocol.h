@@ -43,5 +43,9 @@ typedef struct {
     int phase;
 } SDData;
 
+typedef struct {
+	uint16_t len;
+	void *data;
+} Packet;
 
 #endif // _SD_PROTOCOL_H_

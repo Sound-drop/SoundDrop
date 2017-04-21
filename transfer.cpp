@@ -19,7 +19,7 @@ int main (int argc, char **argv) {
 
     remote = argv[1];
     path = argv[2];
-    command = "scp -i ~/.ssh/sounddrop " + remote + ":" + path + " . ";subl
+    command = "scp -i ~/.ssh/sounddrop " + remote + ":~" + path + " . ";
 
     system(command.c_str());
 

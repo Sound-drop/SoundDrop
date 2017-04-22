@@ -15,7 +15,7 @@ private:
 	SDData				data;
 	static constexpr double SR   = 44100.0; /* Sample rate: 44100 Hz */
 	static constexpr int    FPB  = 512;     /* Frames per buffer: 46 ms buffers. */
-	static constexpr float  RATE = 1.0;     /* Transmission rate: 10 blocks / sec. */
+	static constexpr double RATE = 0.1;     /* Transmission rate: 10 blocks / sec. */
 	static constexpr int    CH   = 2;       /* Channel count: 2 */
 
 	/* Callback for PortAudio */
@@ -37,9 +37,9 @@ private:
 
 		for(int i = 0; i < framesPerBuffer; i++)
 		{
-			float val = 0;
-			for (float freq : data->sine[data->phase]) {
-				val += (float) sin((float) data->phase / freq);
+			double val = 0;
+			for (double freq : data->sine[data->phase]) {
+				val += (double) sin((double) data->phase / freq);
 			}
 
 			*out++ = val; /* left */
@@ -86,7 +86,7 @@ public:
 		word_len += 2;                        /* Add start chirp and element count */
 
 		int block_len = SR * RATE;
-		data.total_frames = static_cast<float>(block_len * ((float) word_len) / (float) FPB);
+		data.total_frames = static_cast<double>(block_len * ((double) word_len) / (double) FPB);
 		data.phase = 0;
 
 		/* Add start chirp */
@@ -96,7 +96,7 @@ public:
 
 		/* Add element count */
 		for (int i = 0; i < block_len; i++) {
-			vector<float> data_point;
+			vector<double> data_point;
 			for (uint32_t x = 1, y = 0; x <= pow(2, 15); x *= 2, y++) {
 				if (elements & x) {
 					data_point.push_back(encoder[y]);
@@ -110,7 +110,7 @@ public:
 		for (Packet &p : packets) {
 
 			/* Encode length of packet */
-			vector<float> data_point;
+			vector<double> data_point;
 			for (int j = 0; j < block_len; j++) {
 
 				/* Encode bits */
@@ -130,7 +130,7 @@ public:
 			for (int i = 0; i < p.len / 2; i++) {
 
 				/* Encode a full block length */
-				vector<float> data_point;
+				vector<double> data_point;
 				for (int j = 0; j < block_len; j++) {
 
 					/* Encode bits */
@@ -151,7 +151,7 @@ public:
 			if (p.len % 2 == 1) {
 
 				*ptr = *ptr & 0x00ff;      /* Zero out second byte of ptr */
-				vector<float> data_point;
+				vector<double> data_point;
 				for (int j = 0; j < block_len; j++) {
 
 					/* Encode bits */

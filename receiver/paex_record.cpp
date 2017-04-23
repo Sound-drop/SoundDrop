@@ -316,7 +316,8 @@ int main(void)
             FFTreader f("recorded.wav");
             vector<string> rv_strs = f.parse();
             for (auto& x : rv_strs) cout << x <<endl;
-            string command = "scp -i ~/.ssh/sounddrop " + rv_strs[1]+"@"+rv_strs[0] + ":" + rv_strs[2] + " . ";
+            // str = std::string(str.c_str());
+            string command = "scp -i ~/.ssh/sounddrop " + string(rv_strs[1].c_str())+"@"+rv_strs[0] + ":" + string(rv_strs[2].c_str()) + " . ";
             cout << command.c_str() << endl;
             system(command.c_str());  
         }

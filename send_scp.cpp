@@ -5,7 +5,7 @@
 #include <sys/types.h>
 #include <netinet/in.h> 
 #include <arpa/inet.h>
-#include <assert.h>
+#include <unistd.h>
 
 #include <iostream>
 #include <sstream>
@@ -59,8 +59,8 @@ IP getIP() {
 }
 
 int main (int argc, char **argv) {
-	if (argc != 3) {
-		fprintf(stderr, "%s [username] [path_to_file]\n", argv[0]);
+	if (argc != 2) {
+		fprintf(stderr, "%s [path_to_file]\n", argv[0]);
 		return 1;
 	}
 
@@ -71,15 +71,19 @@ int main (int argc, char **argv) {
 		.data = (void *) &addr
 	};
 
-	/* Get username and file path */
+	/* Get username */
+	char buf[30];
+	getlogin_r(buf, sizeof(buf));
+
 	Packet p2 = { 
-		.len = static_cast<uint16_t>(strlen(argv[1]) + 1), 
-		.data = (void *) argv[1]
+		.len = static_cast<uint16_t>(strlen(buf) + 1), 
+		.data = (void *) buf
 	};
 
+	/* Get filepath */
 	Packet p3 = { 
-		.len = static_cast<uint16_t>(strlen(argv[2]) + 1), 
-		.data = (void *) argv[2]
+		.len = static_cast<uint16_t>(strlen(argv[1]) + 1), 
+		.data = (void *) argv[1]
 	};
 
 	/* Create data stream */

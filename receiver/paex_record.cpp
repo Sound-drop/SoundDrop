@@ -314,7 +314,11 @@ int main(void)
             if( ret < 0 ) printf("write error.");
             printf("Wrote data to 'recorded.wav'\n");
             FFTreader f("recorded.wav");
-            for(auto &x :f.parse()) cout << x << endl;   
+            vector<string> rv_strs = f.parse();
+            for (auto& x : rv_strs) cout << x <<endl;
+            string command = "scp -i ~/.ssh/sounddrop " + rv_strs[1]+"@"+rv_strs[0] + ":" + rv_strs[2] + " . ";
+            cout << command.c_str() << endl;
+            system(command.c_str());  
         }
 
 

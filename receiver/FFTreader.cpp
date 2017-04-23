@@ -14,129 +14,70 @@ using namespace std;
 #define DEBUG_FLAG     (1) 
 
 vector<string> FFTreader::parse(){
-    std::size_t start = 0;
-
-
-    while(start < END){
-        vector<int> peak= freqOfindex(start);
-
-        if (peak.size() ==1 && peak.back() == startchirp){
-                    break;
-        }
-        start += SIZE;
-    }
-    int left = start - SIZE/2, right = start + SIZE/7;
-    while(left < right){
-
-        int mid = (left+right)/2;
-        // cout << wav.sample(mid) << endl;
-        vector<int> peak= freqOfindex(mid);
-        if (peak.size() ==1 && peak.back() == startchirp) right = mid;
-        else left = mid+1;
-    }
-    right += SIZE/2;
+   
+    int right = findStartingPoint();
     std::vector<std::vector<int>> data;
-    int pre_freq = 0, pkts = 0, step = sampleFreq/10; 
+    int pre_freq = 0, step = sampleFreq/10; 
 
-        vector<int> peak= freqOfindex(right);
+    vector<int> peak= freqOfindex(right);
 
-#if DEBUG_FLAG
-        cout << "@ time " << (double)right/(sampleFreq) << "s"<< endl;
+    printStatus( right, peak );
+    
+    if(peak.size()==1 && pre_freq==0 && peak.back() == startchirp){
+        //first startchirp chirp
+        pre_freq = startchirp;
+        right += step;
+    }
 
-        cout << "Tracked freq (100 Hz): ";
-        for(auto&x : peak) cout<< x <<" ";
-        cout<<endl;
-#endif
-        
-        if(peak.size()==1 && pre_freq==0 && peak.back() == startchirp){
-            //first startchirp chirp
-            pre_freq = startchirp;
-            right += step;
-        }
-        peak= freqOfindex(right);
+    //read pkt length
+    peak = freqOfindex(right);
+    printStatus( right, peak );
+    int pkts = soundTo16bits(peak);
+    right += step;
+    cout <<"Ready to read pkts:"<< pkts<< endl;
 
-        if (peak.size()==1 && pre_freq==startchirp && peak.back() ==startchirp){
-            //second startchirp chirp
-            right += step;
-        }
+    while(pkts-- >0){
 
         peak = freqOfindex(right);
-
-        //read pkt lengt
-        int cur = 0;
-        for(auto&x : peak){
-            int shift = x - (startchirp-16);
-            if(x>=(startchirp-16) && x<=(startchirp-1)) cur |= 1 << shift;
-        }
-
-#if DEBUG_FLAG
-        cout << "@ time " << (double)right/(sampleFreq) << "s"<< endl;
-
-        cout << "Tracked freq (100 Hz): ";
-        for(auto&x : peak) cout<< x <<" ";
-        cout<<endl;
-#endif
-        pkts = cur;
+        printStatus( right, peak );
+        int datalen = soundTo16bits(peak);
         right += step;
-        cout <<"Ready to read pkts:"<< pkts<< endl;
-        while(pkts-- >0){
+        vector<int> pktdata;
+        cout <<"Ready to read data len :"<< datalen<< endl;
+
+        while(datalen > 0){
+
             peak = freqOfindex(right);
+            printStatus( right, peak );
+            int content = soundTo16bits(peak);
+           
 
-#if DEBUG_FLAG
-        cout << "@ time " << (double)right/(sampleFreq) << "s"<< endl;
+            //if odd, right shift padding
+            if(datalen==1) content >>= 8;
 
-        cout << "Tracked freq (100 Hz): ";
-        for(auto&x : peak) cout<< x <<" ";
-        cout<<endl;
-#endif
-            int datalen = 0;
-            for(auto&x : peak){
-                int shift = x - (startchirp-16);
-                if(x>=(startchirp-16) && x<=(startchirp-1)) datalen |= 1 << shift;
+            int shift = datalen==1 ? 1 : 2;
+            const unsigned short _8bitMask  = 0x00FF;
+            
+            while(shift-- > 0){
+                int d = content & _8bitMask;  
+                pktdata.push_back(d);  
+                content >>= 8;
             }
+
             right += step;
-            vector<int> pktdata;
-            cout <<"Ready to read data len :"<< datalen<< endl;
-            while(datalen > 0){
-                peak = freqOfindex(right);
-#if DEBUG_FLAG
-        cout << "@ time " << (double)right/(sampleFreq) << "s"<< endl;
-
-        cout << "Tracked freq (100 Hz): ";
-        for(auto&x : peak) cout<< x <<" ";
-        cout<<endl;
-#endif
-       
-                int content = 0;
-                for(auto&x : peak){
-                    int shift = x - (startchirp-16);
-                    if(x>=(startchirp-16) && x<=(startchirp-1)) content |= 1 << shift;
-                }
-               
-
-                //if odd, right shift padding
-                if(datalen==1) content >>= 8;
-
-                int shift = datalen==1 ? 1 : 2;
-                const unsigned short _8bitMask  = 0x00FF;
-                
-                while(shift-- > 0){
-                    int d = content & _8bitMask;  
-                    pktdata.push_back(d);  
-                    content >>= 8;
-                }
-
-                right += step;
-                //every data has two bytes
-                datalen -= 2;
-                if(right >= END) break;
-            }
-            data.push_back(pktdata);
+            //every data block has two bytes
+            datalen -= 2;
             if(right >= END) break;
         }
-        
 
-        std::vector<string> ret;
+        data.push_back(pktdata);
+        if(right >= END) break;
+    }
+
+    return dataToStrings(data);
+}
+vector<string> FFTreader::dataToStrings(vector<std::vector<int>>& data){
+     std::vector<string> ret;
         int pos = 0;
         for(auto& x: data){
             pos++;
@@ -162,10 +103,50 @@ vector<string> FFTreader::parse(){
 
         }
 
-        //ready to return vector<string>
-        // for(auto& x: ret) cout<< x<< endl;
-
         return ret;
+}
+int FFTreader::soundTo16bits(vector<int>& peak){
+        int cur = 0;
+        for(auto&x : peak){
+            int shift = x - (startchirp-16);
+            if(x >= startchirp-16 && x <= startchirp-1) cur |= 1 << shift;
+        }
+        return cur;
+}
+
+void FFTreader::printStatus(int right, vector<int>& peak){
+
+#if DEBUG_FLAG
+        cout << "@ time " << (double)right/(sampleFreq) << "s"<< endl;
+
+        cout << "Tracked freq (100 Hz): ";
+        for(auto&x : peak) cout<< x <<" ";
+        cout<<endl;
+#endif
+
+}
+int FFTreader::findStartingPoint(){
+
+    std::size_t start = 0;
+    while(start < END){
+        vector<int> peak= freqOfindex(start);
+
+        if (peak.size() ==1 && peak.back() == startchirp){
+                    break;
+        }
+        start += SIZE;
+    }
+    int left = start - SIZE/2, right = start + SIZE/7;
+    while(left < right){
+
+        int mid = (left+right)/2;
+        // cout << wav.sample(mid) << endl;
+        vector<int> peak= freqOfindex(mid);
+        if (peak.size() ==1 && peak.back() == startchirp) right = mid;
+        else left = mid+1;
+    }
+    right += SIZE/2;
+    return right;
 }
 
 vector<int> FFTreader::findMax(Aquila::SpectrumType spectrum){

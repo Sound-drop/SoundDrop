@@ -19,6 +19,10 @@ private:
 	const std::size_t sampleFreq; 
 	vector<int> findMax(Aquila::SpectrumType spectrum);
 	vector<int> freqOfindex(std::size_t start);
+	int  findStartingPoint();
+	void printStatus(int start, vector<int>& peak);
+	int  soundTo16bits(vector<int>& peak);
+	vector<string> dataToStrings(vector<vector<int>>& data);
 
 public:
 	FFTreader(string file_path): wav(file_path), END(wav.getSamplesCount()),sampleFreq(wav.getSampleFrequency()){}

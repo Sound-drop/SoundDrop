@@ -145,7 +145,7 @@ int FFTreader::findStartingPoint(){
         if (peak.size() ==1 && peak.back() == startchirp) right = mid;
         else left = mid+1;
     }
-    right += SIZE/2;
+    right += SIZE;
     return right;
 }
 
@@ -162,7 +162,7 @@ vector<int> FFTreader::findMax(Aquila::SpectrumType spectrum){
     for (std::size_t i = start; i < halfLength; ++i)
     {
         absSpectrum[i] = std::abs(spectrum[i]);
-        int round_freq = (int)((i-1)*(sampleFreq/halfLength)/2 + 50) /100;
+        int round_freq = (int)((i-1)*((double)sampleFreq/halfLength)/2 + 50) /100;
 
         //if(round_freq > highpass) cout << round_freq<< " amp " << absSpectrum[i-1] << endl;
         if(round_freq > highpass && absSpectrum[i-2] < absSpectrum[i-1] && absSpectrum[i-1] > absSpectrum[i] 

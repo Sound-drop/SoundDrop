@@ -38,6 +38,7 @@ vector<string> FFTreader::parse(){
 
     while(pkts-- >0){
 
+        if(right >= END) break;
         peak = freqOfindex(right);
         printStatus( right, peak );
         int datalen = soundTo16bits(peak);
@@ -46,7 +47,7 @@ vector<string> FFTreader::parse(){
         vector<int> pktdata;
 
         while(datalen > 0){
-
+            if(right >= END) break;
             peak = freqOfindex(right);
             printStatus( right, peak );
             int content = soundTo16bits(peak);
@@ -67,11 +68,10 @@ vector<string> FFTreader::parse(){
             right += step;
             //every data block has two bytes
             datalen -= 2;
-            if(right >= END) break;
+            
         }
 
         data.push_back(pktdata);
-        if(right >= END) break;
     }
 
     return dataToStrings(data);
@@ -80,6 +80,7 @@ vector<string> FFTreader::dataToStrings(vector<std::vector<int>>& data){
 
     std::vector<string> ret;
     int pos = 0;
+
     for(auto& x: data){
         pos++;
         string ret_str = "";
@@ -193,17 +194,18 @@ vector<int> FFTreader::findMax(Aquila::SpectrumType spectrum){
 vector<int> FFTreader::freqOfindex(std::size_t start){
 
     vector<Aquila::SampleType> chunk;
-    for (std::size_t i =start; i< start+SIZE; ++i)
+    for (std::size_t i =start; i< start+SIZE && i < END; ++i)
     {   
 
         chunk.push_back(wav.sample(i));
 
+
     }
+    vector<int> ret;
+    if(chunk.size()!=SIZE) return ret; 
+
     Aquila::SignalSource data(chunk, sampleFreq);
 
-   
-
- 
     
     auto fft = Aquila::FftFactory::getFft(SIZE);
     // cout << "\n\nSignal spectrum of time index: "<<start<< endl;

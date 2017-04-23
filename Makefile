@@ -30,8 +30,8 @@ send_scp: send_scp.cpp sound_drop.h protocol.h
 transfer: transfer.cpp
 	$(CXX) $(CXXFLAGS) $< $(STATIC_LIBS) $(INCLUDES) $(FLAGS) -o $@
 
-recv: receiver/FFTreader.cpp receiver/paex_record.cpp receiver/write_wav.c
-	$(CXX) -o $@ $(CXXFLAGS) receiver/FFTreader.cpp receiver/paex_record.cpp receiver/write_wav.c $(STATIC_LIBS) $(INCLUDES) $(LIBS)
+recv: receiver/FFTreader.cpp receiver/paex_record.cpp receiver/write_wav.cpp
+	$(CXX) -o $@ $(CXXFLAGS) receiver/FFTreader.cpp receiver/paex_record.cpp receiver/write_wav.cpp $(STATIC_LIBS) $(INCLUDES) $(LIBS)
 
 # %.o: %.cpp
 # 	$(CXX) $(CFLAGS) -c $< $(PA_STATIC_LIB) $(INCLUDES) -o $@

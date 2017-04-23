@@ -16,7 +16,6 @@ using namespace std;
 vector<string> FFTreader::parse(){
    
     int right = findStartingPoint();
-    std::vector<std::vector<int>> data;
     int pre_freq = 0, step = sampleFreq/10; 
 
     vector<int> peak= freqOfindex(right);
@@ -35,6 +34,7 @@ vector<string> FFTreader::parse(){
     int pkts = soundTo16bits(peak);
     right += step;
     cout <<"Ready to read pkts:"<< pkts<< endl;
+    vector<vector<int>> data;
 
     while(pkts-- >0){
 
@@ -42,8 +42,8 @@ vector<string> FFTreader::parse(){
         printStatus( right, peak );
         int datalen = soundTo16bits(peak);
         right += step;
-        vector<int> pktdata;
         cout <<"Ready to read data len :"<< datalen<< endl;
+        vector<int> pktdata;
 
         while(datalen > 0){
 
@@ -77,48 +77,48 @@ vector<string> FFTreader::parse(){
     return dataToStrings(data);
 }
 vector<string> FFTreader::dataToStrings(vector<std::vector<int>>& data){
-     std::vector<string> ret;
-        int pos = 0;
-        for(auto& x: data){
-            pos++;
-            string ret_str = "";
-            std::vector<int> ip;
-            for(auto tmp :x) {
-               if(pos==1){ 
-                    ip.push_back(tmp);
-               }else{ 
-                    cout << tmp << " ";
-                    ret_str+=(char) tmp;
-               }
-            }
-            if(ip.size()>0){
-                    for(int xx=0; xx< ip.size(); xx++){ 
-                        if(xx == ip.size()-1) ret_str += std::to_string(ip[xx]);
-                        else ret_str+= std::to_string(ip[xx])+'.';
-                    }
-                    cout<< "ascii codes";
-            }
-            cout << endl;
-            ret.push_back(ret_str);
 
+    std::vector<string> ret;
+    int pos = 0;
+    for(auto& x: data){
+        pos++;
+        string ret_str = "";
+        std::vector<int> ip;
+        for(auto tmp :x) {
+           if(pos==1){ 
+                ip.push_back(tmp);
+           }else{ 
+                cout << tmp << " ";
+                ret_str+=(char) tmp;
+           }
         }
+        if(ip.size()>0){
+                for(int xx=0; xx< ip.size(); xx++){ 
+                    if(xx == ip.size()-1) ret_str += std::to_string(ip[xx]);
+                    else ret_str+= std::to_string(ip[xx])+'.';
+                }
+                cout<< "ascii codes";
+        }
+        cout << endl;
+        ret.push_back(ret_str);
 
-        return ret;
+    }
+
+    return ret;
 }
 int FFTreader::soundTo16bits(vector<int>& peak){
-        int cur = 0;
-        for(auto&x : peak){
-            int shift = x - (startchirp-16);
-            if(x >= startchirp-16 && x <= startchirp-1) cur |= 1 << shift;
-        }
-        return cur;
+    int cur = 0;
+    for(auto&x : peak){
+        int shift = x - (startchirp-16);
+        if(x >= startchirp-16 && x <= startchirp-1) cur |= 1 << shift;
+    }
+    return cur;
 }
 
 void FFTreader::printStatus(int right, vector<int>& peak){
 
 #if DEBUG_FLAG
         cout << "@ time " << (double)right/(sampleFreq) << "s"<< endl;
-
         cout << "Tracked freq (100 Hz): ";
         for(auto&x : peak) cout<< x <<" ";
         cout<<endl;
@@ -150,45 +150,45 @@ int FFTreader::findStartingPoint(){
 }
 
 vector<int> FFTreader::findMax(Aquila::SpectrumType spectrum){
-        std::size_t halfLength = spectrum.size() / 2;
-        std::vector<double> absSpectrum(halfLength);
-        double max = 0;
-        int peak_freq  = 0;
-        std::vector<int> ret;
+    std::size_t halfLength = spectrum.size() / 2;
+    std::vector<double> absSpectrum(halfLength);
+    double max = 0;
+    int peak_freq  = 0;
+    std::vector<int> ret;
+    
+    //search the band of the freq >= 15000
+    int start = 0;
+    int highpass = startchirp-20;
+    for (std::size_t i = start; i < halfLength; ++i)
+    {
+        absSpectrum[i] = std::abs(spectrum[i]);
+        int round_freq = (int)((i-1)*(sampleFreq/halfLength)/2 + 50) /100;
+
+        //if(round_freq > highpass) cout << round_freq<< " amp " << absSpectrum[i-1] << endl;
+        if(round_freq > highpass && absSpectrum[i-2] < absSpectrum[i-1] && absSpectrum[i-1] > absSpectrum[i] 
+            && absSpectrum[i-1] > abs_amp ){
+             
+
+             // cout << "original freq " << (i-1)*(sampleFreq/halfLength)/2 << endl;
+             if(ret.size() > 0 && ret.back()==round_freq) round_freq++;
+             ret.push_back(round_freq);
+             // cout << "round freq: "<<round_freq<<endl;
+             // cout << " amp " <<absSpectrum[i-1] << endl;
         
-        //search the band of the freq >= 15000
-        int start = 0;
-        int highpass = startchirp-20;
-        for (std::size_t i = start; i < halfLength; ++i)
-        {
-            absSpectrum[i] = std::abs(spectrum[i]);
-            int round_freq = (int)((i-1)*(sampleFreq/halfLength)/2 + 50) /100;
-
-            //if(round_freq > highpass) cout << round_freq<< " amp " << absSpectrum[i-1] << endl;
-            if(round_freq > highpass && absSpectrum[i-2] < absSpectrum[i-1] && absSpectrum[i-1] > absSpectrum[i] 
-                && absSpectrum[i-1] > abs_amp ){
-                 
-
-                 // cout << "original freq " << (i-1)*(sampleFreq/halfLength)/2 << endl;
-                 if(ret.size() > 0 && ret.back()==round_freq) round_freq++;
-                 ret.push_back(round_freq);
-                 // cout << "round freq: "<<round_freq<<endl;
-                 // cout << " amp " <<absSpectrum[i-1] << endl;
-            
-            }
-            
-            if(absSpectrum[i] > max){ 
-                max = absSpectrum[i];
-                peak_freq = round_freq;
-            }
         }
-        //cout << "peak freq for input with sample size: "<< halfLength*2 << " which needs to be pow of 2" <<endl;
-        //cout <<peak_freq << " Hz max amp:" << max << endl;
-        //plot(absSpectrum);
-        // if(peak_freq < 190) ret.clear();
-
-        return ret;
+        
+        if(absSpectrum[i] > max){ 
+            max = absSpectrum[i];
+            peak_freq = round_freq;
+        }
     }
+    //cout << "peak freq for input with sample size: "<< halfLength*2 << " which needs to be pow of 2" <<endl;
+    //cout <<peak_freq << " Hz max amp:" << max << endl;
+    //plot(absSpectrum);
+    // if(peak_freq < 190) ret.clear();
+
+    return ret;
+}
 
 vector<int> FFTreader::freqOfindex(std::size_t start){
 

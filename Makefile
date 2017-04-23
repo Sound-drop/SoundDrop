@@ -20,7 +20,7 @@ SOUND_OBJS = \
 INCLUDES = -I$(PA_INCLUDE_DIR) -I$(AQ_INCLUDE_DIR)
 STATIC_LIBS = $(PA_STATIC_LIB) $(AQ_STATIC_LIB)
 
-all: send_ip test transfer
+all: send_ip sound
 
 send_ip: send_ip.cpp sound_drop.h protocol.h
 	$(CXX) $(CXXFLAGS) $< $(PA_STATIC_LIB) -I$(PA_INCLUDE_DIR) $(LIBS) -o $@

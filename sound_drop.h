@@ -3,20 +3,31 @@
 #include "protocol.h"
 #include "portaudio.h"
 
+#define DEBUG 0
+#ifdef DEBUG
+#include <iostream>
+#endif
+
 using namespace std;
 
 class SoundDrop {
 private:
 
 	/* PortAudio components for sending audio */
-	PaStream*           stream;
-	PaError             err;
-	PaStreamParameters  outParams;
-	SDData				data;
+	PaStream*               stream;
+	PaError                 err;
+	PaStreamParameters      outParams;
+	SDData				    data;
 	static constexpr double SR   = 44100.0; /* Sample rate: 44100 Hz */
 	static constexpr int    FPB  = 512;     /* Frames per buffer: 46 ms buffers. */
 	static constexpr double RATE = 0.1;     /* Transmission rate: 10 blocks / sec. */
 	static constexpr int    CH   = 2;       /* Channel count: 2 */
+
+#ifdef DEBUG
+	vector<int> debug_freqs = { 185, 186, 187, 188, 189, 190, 191, 192, 
+								193, 194, 195, 196, 197, 198, 199, 200,
+								201, 202 };
+#endif
 
 	/* Callback for PortAudio */
 	static int paCallback( const void                      *inputBuffer,
@@ -39,7 +50,7 @@ private:
 		{
 			double val = 0;
 			for (double freq : data->sine[data->phase]) {
-				val += (double) sin((double) data->phase / freq);
+				val += sin((double) data->phase / freq) / (double) data->sine[data->phase].size();
 			}
 
 			*out++ = val; /* left */
@@ -91,8 +102,13 @@ public:
 
 		/* Add start chirp */
 		for (int i = 0; i < block_len; i++) {
-			data.sine.push_back({chirp});
+			data.sine.push_back({start_chirp});
 		}
+
+#ifdef DEBUG
+		/* Print out start chirp */
+		cerr << debug_freqs[debug_freqs.size() - 2] << " *" << endl;
+#endif
 
 		/* Add element count */
 		for (int i = 0; i < block_len; i++) {
@@ -100,11 +116,20 @@ public:
 			for (uint32_t x = 1, y = 0; x <= pow(2, 15); x *= 2, y++) {
 				if (elements & x) {
 					data_point.push_back(encoder[y]);
+
+#ifdef DEBUG
+					/* Print out frequencies but only once */
+					if (i == 0) cerr << debug_freqs[y] << " ";
+#endif
 				}
 			}
 
 			data.sine.push_back(move(data_point));
 		}
+
+#ifdef DEBUG
+		cerr << "*" << endl;
+#endif
 
 		/* Encode all packets */
 		for (Packet &p : packets) {
@@ -117,13 +142,20 @@ public:
 				for (uint32_t x = 1, y = 0; x <= pow(2, 15); x *= 2, y++) {
 					if (p.len & x) {
 						data_point.push_back(encoder[y]);
+
+#ifdef DEBUG
+						/* Print out frequencies but only once */
+						if (j == 0) cerr << debug_freqs[y] << " ";
+#endif
 					}
 				}
 
 				data.sine.push_back(move(data_point));
 			}
 
-			// data.sine.push_back(move(data_point));
+#ifdef DEBUG
+			cerr << "*" << endl;
+#endif
 
 			/* Encode packet data */
 			uint16_t *ptr = (uint16_t *) p.data;
@@ -137,13 +169,21 @@ public:
 					for (uint32_t x = 1, y = 0; x <= pow(2, 15); x *= 2, y++) {
 						if (*ptr & x) {
 							data_point.push_back(encoder[y]);
+
+#ifdef DEBUG
+							/* Print out frequencies but only once */
+							if (j == 0) cerr << debug_freqs[y] << " ";
+#endif
 						}
 					}
 
 					data.sine.push_back(move(data_point));
 				}
 
-				// data.sine.push_back(move(data_point));
+#ifdef DEBUG
+				cerr << "*" << endl;
+#endif
+
 				ptr++;
 			}
 
@@ -158,17 +198,35 @@ public:
 					for (uint32_t x = 1, y = 0; x <= pow(2, 15); x *= 2, y++) {
 						if (*ptr & x) {
 							data_point.push_back(encoder[y]);
+
+#ifdef DEBUG
+							/* Print out frequencies but only once */
+							if (j == 0) cerr << debug_freqs[y] << " ";
+#endif
 						}
 					}
 
 					data.sine.push_back(move(data_point));
 				}
 
-				// data.sine.push_back(move(data_point));
+#ifdef DEBUG
+			cerr << "*" << endl;
+#endif
+
 			}
 
 			/* Done encoding packet, onto the next one! */
 		}
+
+		/* Add stop chirp */
+		for (int i = 0; i < block_len; i++) {
+			data.sine.push_back({stop_chirp});
+		}
+
+#ifdef DEBUG
+		/* Print out end chirp */
+		cerr << debug_freqs[debug_freqs.size() - 1] << " *" << endl;
+#endif
 
 		/* All done!  Send transmission when ready... */
 

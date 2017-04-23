@@ -34,8 +34,8 @@ double encoder[16] = {
 	magic / 20000.0     /* 20.0 kHz, 1000 0000 0000 0000 */
 };
 
-double chirp     = magic / 20100.0;  /* 21.1 kHz */
-double delimiter = magic / 20200.0;  /* 21.2 kHz */
+double start_chirp = magic / 20100.0;  /* 21.1 kHz */
+double stop_chirp  = magic / 20200.0;  /* 21.2 kHz */
 double bandwidth = 100.0;   /* Hz */
 double emit_rate = 0.1;     /* Sec */
 

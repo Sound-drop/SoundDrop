@@ -20,7 +20,7 @@ SOUND_OBJS = \
 INCLUDES = -I$(PA_INCLUDE_DIR) -I$(AQ_INCLUDE_DIR)
 STATIC_LIBS = $(PA_STATIC_LIB) $(AQ_STATIC_LIB)
 
-all: send_ip sound
+all: send_ip recv
 
 send_ip: send_ip.cpp sound_drop.h protocol.h
 	$(CXX) $(CXXFLAGS) $< $(PA_STATIC_LIB) -I$(PA_INCLUDE_DIR) $(LIBS) -o $@
@@ -28,7 +28,7 @@ send_ip: send_ip.cpp sound_drop.h protocol.h
 transfer: transfer.cpp
 	$(CXX) $(CXXFLAGS) $< $(STATIC_LIBS) $(INCLUDES) $(FLAGS) -o $@
 
-sound: receiver/FFTreader.cpp receiver/paex_record.cpp receiver/write_wav.c
+recv: receiver/FFTreader.cpp receiver/paex_record.cpp receiver/write_wav.c
 	$(CXX) -o $@ $(CXXFLAGS) receiver/FFTreader.cpp receiver/paex_record.cpp receiver/write_wav.c $(STATIC_LIBS) $(INCLUDES) $(LIBS)
 
 # %.o: %.cpp
@@ -37,4 +37,4 @@ sound: receiver/FFTreader.cpp receiver/paex_record.cpp receiver/write_wav.c
 # %.o: %.c
 # 	$(CXX) $(CFLAGS) -c $< $(STATIC_LIBS) -I$(INCLUDES) -o $@
 clean:
-	rm -rf send_ip test transfer *.dSYM receiver/*.o sound
+	rm -rf send_ip test transfer *.dSYM receiver/*.o recv

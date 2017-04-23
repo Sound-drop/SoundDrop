@@ -9,7 +9,7 @@
 #include <cstdlib>
 #include "FFTreader.hpp"
 using namespace std;
-#define abs_amp 500000 
+#define abs_amp 80000 
 #define startchirp 201
 #define DEBUG_FLAG     (1) 
 
@@ -21,17 +21,20 @@ vector<string> FFTreader::parse(){
         vector<int> peak= freqOfindex(start);
 
         if (peak.size() ==1 && peak.back() == startchirp){
-         break;
+                    break;
         }
         start += SIZE;
     }
-    int left = start - SIZE,right = start;
+    int left = start - SIZE/2, right = start + SIZE/7;
     while(left < right){
+
         int mid = (left+right)/2;
+        // cout << wav.sample(mid) << endl;
         vector<int> peak= freqOfindex(mid);
         if (peak.size() ==1 && peak.back() == startchirp) right = mid;
-        else left = mid+ SIZE/8;
+        else left = mid+1;
     }
+    right += SIZE/2;
     std::vector<std::vector<int>> data;
     int pre_freq = 0, pkts = 0, step = sampleFreq/10; 
 
@@ -107,12 +110,22 @@ vector<string> FFTreader::parse(){
                 int content = 0;
                 for(auto&x : peak){
                     int shift = x - (startchirp-16);
-                    if(shift >=0) content |= 1 << shift;
+                    if(x>=(startchirp-16) && x<=(startchirp-1)) content |= 1 << shift;
                 }
+               
 
                 //if odd, right shift padding
                 if(datalen==1) content >>= 8;
-                pktdata.push_back(content);
+
+                int shift = datalen==1 ? 1 : 2;
+                const unsigned short _8bitMask  = 0x00FF;
+                
+                while(shift-- > 0){
+                    int d = content & _8bitMask;  
+                    pktdata.push_back(d);  
+                    content >>= 8;
+                }
+
                 right += step;
                 //every data has two bytes
                 datalen -= 2;
@@ -122,7 +135,7 @@ vector<string> FFTreader::parse(){
             if(right >= END) break;
         }
         
-        const unsigned short _8bitMask  = 0x00FF;
+
         std::vector<string> ret;
         int pos = 0;
         for(auto& x: data){
@@ -130,31 +143,23 @@ vector<string> FFTreader::parse(){
             string ret_str = "";
             std::vector<int> ip;
             for(auto tmp :x) {
-
-                while(tmp > 0){
-                    int d = tmp & _8bitMask;    
-
-                   if(pos==1){ 
-                        ip.push_back(d);
-                   }else{ 
-                        ret_str+=(char) d;
-                   }
-
-                    tmp >>= 8;
-                }
-                
-                
-
-
+               if(pos==1){ 
+                    ip.push_back(tmp);
+               }else{ 
+                    cout << tmp << " ";
+                    ret_str+=(char) tmp;
+               }
             }
             if(ip.size()>0){
                     for(int xx=0; xx< ip.size(); xx++){ 
                         if(xx == ip.size()-1) ret_str += std::to_string(ip[xx]);
                         else ret_str+= std::to_string(ip[xx])+'.';
                     }
+                    cout<< "ascii codes";
             }
+            cout << endl;
             ret.push_back(ret_str);
-            cout<<endl;
+
         }
 
         //ready to return vector<string>
@@ -172,7 +177,7 @@ vector<int> FFTreader::findMax(Aquila::SpectrumType spectrum){
         
         //search the band of the freq >= 15000
         int start = 0;
-        int highpass = startchirp-16;
+        int highpass = startchirp-20;
         for (std::size_t i = start; i < halfLength; ++i)
         {
             absSpectrum[i] = std::abs(spectrum[i]);
@@ -182,8 +187,12 @@ vector<int> FFTreader::findMax(Aquila::SpectrumType spectrum){
             if(round_freq > highpass && absSpectrum[i-2] < absSpectrum[i-1] && absSpectrum[i-1] > absSpectrum[i] 
                 && absSpectrum[i-1] > abs_amp ){
                  
+
+                 // cout << "original freq " << (i-1)*(sampleFreq/halfLength)/2 << endl;
+                 if(ret.size() > 0 && ret.back()==round_freq) round_freq++;
                  ret.push_back(round_freq);
-                 // cout << round_freq<< " amp " <<absSpectrum[i-1] << endl;
+                 // cout << "round freq: "<<round_freq<<endl;
+                 // cout << " amp " <<absSpectrum[i-1] << endl;
             
             }
             

@@ -9,7 +9,7 @@
 #include <cstdlib>
 #include "FFTreader.hpp"
 using namespace std;
-#define abs_amp 80000 
+#define abs_amp 5000 
 #define startchirp 201
 #define DEBUG_FLAG     (1) 
 
@@ -164,8 +164,9 @@ vector<int> FFTreader::findMax(Aquila::SpectrumType spectrum){
     {
         absSpectrum[i] = std::abs(spectrum[i]);
         int round_freq = (int)((i-1)*((double)sampleFreq/halfLength)/2 + 50) /100;
+        // if(round_freq > highpass) cout << " amp " <<absSpectrum[i] << endl; 
 
-        //if(round_freq > highpass) cout << round_freq<< " amp " << absSpectrum[i-1] << endl;
+
         if(round_freq > highpass && absSpectrum[i-2] < absSpectrum[i-1] && absSpectrum[i-1] > absSpectrum[i] 
             && absSpectrum[i-1] > abs_amp ){
              
@@ -178,11 +179,12 @@ vector<int> FFTreader::findMax(Aquila::SpectrumType spectrum){
         
         }
         
-        if(absSpectrum[i] > max){ 
+        if(absSpectrum[i] > max && round_freq > highpass){ 
             max = absSpectrum[i];
             peak_freq = round_freq;
         }
     }
+    // cout << " amp " << max << endl; 
     //cout << "peak freq for input with sample size: "<< halfLength*2 << " which needs to be pow of 2" <<endl;
     //cout <<peak_freq << " Hz max amp:" << max << endl;
     //plot(absSpectrum);

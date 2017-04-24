@@ -9,7 +9,7 @@
 #include <cstdlib>
 #include "FFTreader.hpp"
 using namespace std;
-#define abs_amp 5000 
+#define abs_amp 6000 
 #define startchirp 201
 #define DEBUG_FLAG     (1) 
 

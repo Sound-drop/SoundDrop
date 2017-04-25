@@ -6,8 +6,6 @@ PA_STATIC_LIB = $(LIBRARY_SRC)/portaudio/lib/.libs/libportaudio.a
 PA_INCLUDE_DIR = $(LIBRARY_SRC)/portaudio/include
 AQ_STATIC_LIB = $(LIBRARY_SRC)/aquila/build/libAquila.a $(LIBRARY_SRC)/aquila/build/lib/libOoura_fft.a
 AQ_INCLUDE_DIR = $(LIBRARY_SRC)/aquila
-LIBSSH_STATIC_LIB = $(LIBRARY_SRC)/libssh/build/src/libssh.dylib # same as static
-LIBSSH_INCLUDE_DIR = $(LIBRARY_SRC)/libssh/include
 
 SHELL = /bin/sh
 LIBTOOL = $(SHELL) $(LIBRARY_SRC)/portaudio/libtool

@@ -1,6 +1,12 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include "portaudio.h"
+#include "write_wav.h"
 #include "aquila/global.h"
+#include "aquila/source/generator/SquareGenerator.h"
 #include "aquila/source/SignalSource.h"
 #include "aquila/transform/FftFactory.h"
+#include "aquila/tools/TextPlot.h"
 #include "aquila/source/WaveFile.h"
 #include <algorithm>
 #include <functional>
@@ -8,13 +14,171 @@
 #include <iostream>
 #include <cstdlib>
 #include "FFTreader.hpp"
+
+
+#define SAMPLE_RATE  (44100)
+#define FRAMES_PER_BUFFER (512)
+#define NUM_CHANNELS    (2)
+
+
 using namespace std;
-#define abs_amp 8000 
+#define abs_amp 10000 
 #define startchirp 201
-#define DEBUG_FLAG    (1) 
+#define DEBUG_FLAG  (1)
+#define PA_SAMPLE_TYPE  paInt16
+#define SAMPLE_SILENCE  (0)
+#define PRINTF_S_FORMAT "%d"
+
+
+void  FFTreader::done(FFTreader::paTestData data, PaError err){
+    Pa_Terminate();
+    if( data.recordedSamples )       /* Sure it is NULL or valid. */
+        free( data.recordedSamples );
+    if( err != paNoError )
+    {
+        fprintf( stderr, "An error occured while using the portaudio stream\n" );
+        fprintf( stderr, "Error number: %d\n", err );
+        fprintf( stderr, "Error message: %s\n", Pa_GetErrorText( err ) );
+        err = 1;          /* Always return 0 or 1, but no other return codes. */
+    }
+    exit (EXIT_FAILURE);
+}
+int FFTreader::recordCallback( const void *inputBuffer, void *outputBuffer,
+                           unsigned long framesPerBuffer,
+                           const PaStreamCallbackTimeInfo* timeInfo,
+                           PaStreamCallbackFlags statusFlags,
+                           void *userData )
+{
+    paTestData *data = (paTestData*)userData;
+    const SAMPLE *rptr = (const SAMPLE*)inputBuffer;
+    SAMPLE *wptr = &data->recordedSamples[data->frameIndex * NUM_CHANNELS];
+    long framesToCalc;
+    long i;
+    int finished;
+    unsigned long framesLeft = data->maxFrameIndex - data->frameIndex;
+
+    (void) outputBuffer; /* Prevent unused variable warnings. */
+    (void) timeInfo;
+    (void) statusFlags;
+    (void) userData;
+
+    if( framesLeft < framesPerBuffer )
+    {
+        framesToCalc = framesLeft;
+        finished = paComplete;
+    }
+    else
+    {
+        framesToCalc = framesPerBuffer;
+        finished = paContinue;
+    }
+
+    if( inputBuffer == NULL )
+    {
+        for( i=0; i<framesToCalc; i++ )
+        {
+            *wptr++ = SAMPLE_SILENCE;  /* left */
+            if( NUM_CHANNELS == 2 ) *wptr++ = SAMPLE_SILENCE;  /* right */
+        }
+    }
+    else
+    {
+        for( i=0; i<framesToCalc; i++ )
+        {
+            *wptr++ = *rptr++;  /* left */
+            if( NUM_CHANNELS == 2 ) *wptr++ = *rptr++;  /* right */
+        }
+    }
+    data->frameIndex += framesToCalc;
+    return finished;
+}
+
+void FFTreader::record(){
+    PaStreamParameters  inputParameters;
+    PaStream*           stream;
+    PaError             err = paNoError;
+    paTestData          data;
+    int                 i;
+    int                 totalFrames;
+    int                 numSamples;
+    int                 numBytes;
+
+
+
+    data.maxFrameIndex = totalFrames = NUM_SECONDS * SAMPLE_RATE; /* Record for a few seconds. */
+    data.frameIndex = 0;
+    numSamples = totalFrames * NUM_CHANNELS;
+    numBytes = numSamples * sizeof(SAMPLE);
+    data.recordedSamples = (SAMPLE *) malloc( numBytes ); /* From now on, recordedSamples is initialised. */
+    if( data.recordedSamples == NULL )
+    {
+        printf("Could not allocate record array.\n");
+        done(data,err);
+        // goto done;
+    }
+    for( i=0; i<numSamples; i++ ) data.recordedSamples[i] = 0;
+
+    err = Pa_Initialize();
+    if( err != paNoError ) done(data,err);
+
+    inputParameters.device = Pa_GetDefaultInputDevice(); /* default input device */
+    if (inputParameters.device == paNoDevice) {
+        fprintf(stderr,"Error: No default input device.\n");
+        done(data,err);
+    }
+    inputParameters.channelCount = 2;                    /* stereo input */
+    inputParameters.sampleFormat = PA_SAMPLE_TYPE;
+    inputParameters.suggestedLatency = Pa_GetDeviceInfo( inputParameters.device )->defaultLowInputLatency;
+    inputParameters.hostApiSpecificStreamInfo = NULL;
+
+
+    err = Pa_OpenStream(
+              &stream,
+              &inputParameters,
+              NULL,                  /* &outputParameters, */
+              SAMPLE_RATE,
+              FRAMES_PER_BUFFER,
+              paClipOff,      /* we won't output out of range samples so don't bother clipping them */
+              recordCallback,
+              &data );
+    if( err != paNoError ) done(data,err);
+
+    err = Pa_StartStream( stream );
+    if( err != paNoError ) done(data,err);
+    printf("\n=== Now recording!! Please speak into the microphone. ===\n"); fflush(stdout);
+
+    while( ( err = Pa_IsStreamActive( stream ) ) == 1 )
+    {
+        Pa_Sleep(1000);
+        printf("index = %d\n", data.frameIndex ); fflush(stdout);
+    }
+    if( err < 0 ) done(data,err);
+    err = Pa_CloseStream( stream );
+    if( err != paNoError ) done(data,err);
+    WAV_Writer writer;
+    int ret = Audio_WAV_OpenWriter( &writer, file_path.c_str(), 44100, 2 );
+    if( ret < 0)
+    {
+        printf("Could not open file.");
+    }
+    else
+    {
+
+        ret =  Audio_WAV_WriteShorts( &writer, data.recordedSamples, numSamples );
+        ret =  Audio_WAV_CloseWriter( &writer );
+        if( ret < 0 ) printf("write error.");
+        printf("Wrote data to 'recorded.wav'\n");
+    }
+}
 
 vector<vector<FFTreader::byteType>> FFTreader::parse(){
-   
+    
+
+    record();
+    Aquila::WaveFile wavData(file_path);
+    wav = &wavData;
+    END = wav -> getSamplesCount();
+    sampleFreq = wav ->getSampleFrequency();
     int right = findStartingPoint();
     int pre_freq = 0, step = sampleFreq/10; 
 
@@ -34,11 +198,12 @@ vector<vector<FFTreader::byteType>> FFTreader::parse(){
     int pkts = soundTo16bits(peak);
     right += step;
     cout <<"Ready to read pkts:"<< pkts<< endl;
-    vector<vector<FFTreader::byteType>> data;
+    vector<vector<FFTreader::byteType>> ret_data;
 
     while(pkts-- >0){
 
-        if(right >= END) break;
+        if(right+SIZE > END) break;
+
         peak = freqOfindex(right);
         printStatus( right, peak );
         int datalen = soundTo16bits(peak);
@@ -47,7 +212,7 @@ vector<vector<FFTreader::byteType>> FFTreader::parse(){
         vector<FFTreader::byteType> pktdata;
 
         while(datalen > 0){
-            if(right >= END) break;
+            if(right+SIZE > END) break;
             peak = freqOfindex(right);
             printStatus( right, peak );
             int content = soundTo16bits(peak);
@@ -71,10 +236,10 @@ vector<vector<FFTreader::byteType>> FFTreader::parse(){
             
         }
 
-        data.push_back(pktdata);
+        ret_data.push_back(pktdata);
     }
-    return data;
-    //return dataToStrings(data);
+    return ret_data;
+
 }
 vector<string> FFTreader::dataToStrings(vector<std::vector<int>>& data){
 
@@ -118,13 +283,13 @@ int FFTreader::soundTo16bits(vector<int>& peak){
 
 void FFTreader::printStatus(int right, vector<int>& peak){
 
-#if DEBUG_FLAG
+    if(DEBUG_FLAG){
+
         cout << "@ time " << (double)right/(sampleFreq) << "s"<< endl;
         cout << "Tracked freq (100 Hz): ";
         for(auto&x : peak) cout<< x <<" ";
         cout<<endl;
-#endif
-
+    }
 }
 int FFTreader::findStartingPoint(){
 
@@ -196,14 +361,13 @@ vector<int> FFTreader::findMax(Aquila::SpectrumType spectrum){
 vector<int> FFTreader::freqOfindex(std::size_t start){
 
     vector<Aquila::SampleType> chunk;
+    vector<int> ret;
     for (std::size_t i =start; i< start+SIZE && i < END; ++i)
     {   
-
-        chunk.push_back(wav.sample(i));
-
+        chunk.push_back(wav->sample(i));
 
     }
-    vector<int> ret;
+   
     if(chunk.size()!=SIZE) return ret; 
 
     Aquila::SignalSource data(chunk, sampleFreq);

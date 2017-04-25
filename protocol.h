@@ -8,9 +8,9 @@ using namespace std;
 /* 
  * A simple data encoding protocol for data transmission over audio
  * Audio Spectrum:
- *  - Total: 19500 Hz to 21000 Hz
- *  - Encode hex digit every hundreth frequency from [19.5kHz, 21kHz]
- *     - ie. 0 -> 19.5kHz, 1 -> 19.6kHz, 2 -> 19.7kHz, ...
+ *  - Total: 18500 Hz to 20000 Hz
+ *  - Encode binary bit every hundreth frequency from [18.5kHz, 20kHz]
+ *     - ie. 0 -> 18.5kHz, 1 -> 18.6kHz, 2 -> 18.7kHz, ...
  */
 
 double magic = 7019.0;  /* Number used to convert freq to  */
@@ -34,8 +34,8 @@ double encoder[16] = {
 	magic / 20000.0     /* 20.0 kHz, 1000 0000 0000 0000 */
 };
 
-double start_chirp = magic / 20100.0;  /* 21.1 kHz */
-double stop_chirp  = magic / 20200.0;  /* 21.2 kHz */
+double start_chirp = magic / 20100.0;  /* 20.1 kHz */
+double stop_chirp  = magic / 20200.0;  /* 20.2 kHz */
 double bandwidth = 100.0;   /* Hz */
 double emit_rate = 0.1;     /* Sec */
 

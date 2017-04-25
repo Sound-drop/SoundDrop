@@ -1,15 +1,20 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include "portaudio.h"
+#include "write_wav.h"
 #include "aquila/global.h"
+#include "aquila/source/generator/SquareGenerator.h"
 #include "aquila/source/SignalSource.h"
 #include "aquila/transform/FftFactory.h"
+#include "aquila/tools/TextPlot.h"
 #include "aquila/source/WaveFile.h"
 #include <algorithm>
 #include <functional>
 #include <memory>
 #include <iostream>
 #include <cstdlib>
+
 using namespace std;
-
-
 class FFTreader
 {
 private:
@@ -25,6 +30,7 @@ private:
 	vector<string> dataToStrings(vector<vector<int>>& data);
 
 public:
+	typedef unsigned char byteType;
 	FFTreader(string file_path): wav(file_path), END(wav.getSamplesCount()),sampleFreq(wav.getSampleFrequency()){}
-	vector<string> parse();
+	vector<vector<FFTreader::byteType>> parse();
 };

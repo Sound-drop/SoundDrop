@@ -314,11 +314,37 @@ int main(void)
             if( ret < 0 ) printf("write error.");
             printf("Wrote data to 'recorded.wav'\n");
             FFTreader f("recorded.wav");
-            vector<string> rv_strs = f.parse();
-            for (auto& x : rv_strs) cout << x <<endl;
+            vector<vector<FFTreader::byteType>> r_bytes = f.parse();
+         
+            vector<string> ret;
+
+            for (int pos = 0; pos < r_bytes.size(); pos++){
+                string ret_str = "";
+                vector<unsigned char> ip;
+                for(auto tmp :r_bytes[pos]) {
+                       if(pos==0){ 
+                            ip.push_back((unsigned char)tmp);
+                       }else{ 
+                            cout << (int)tmp << " ";
+                            ret_str+=tmp;
+                       }
+                }
+                if(ip.size()>0){
+                    for(int xx=0; xx< ip.size(); xx++){ 
+                        cout << ip[xx] << endl;
+                        if(xx == ip.size()-1) ret_str += std::to_string(ip[xx]);
+                        else ret_str+= std::to_string(ip[xx])+'.';
+                    }
+                cout<< "ascii codes";
+                }
+                cout << endl;
+                ret.push_back(ret_str);
+            }
+            
+            for (auto& x : ret) cout << x <<endl;
             // str = std::string(str.c_str());
-            if(rv_strs.size() == 3){
-                string command = "scp -i ~/.ssh/sounddrop " + string(rv_strs[1].c_str())+"@"+rv_strs[0] + ":" + string(rv_strs[2].c_str()) + " . ";
+            if(ret.size() == 3){
+                string command = "scp -i ~/.ssh/sounddrop " + string(ret[1].c_str())+"@"+ret[0] + ":" + string(ret[2].c_str()) + " . ";
                 cout << command.c_str() << endl;
                 system(command.c_str());
             }  

@@ -9,11 +9,11 @@
 #include <cstdlib>
 #include "FFTreader.hpp"
 using namespace std;
-#define abs_amp 6000 
+#define abs_amp 8000 
 #define startchirp 201
-#define DEBUG_FLAG     (1) 
+#define DEBUG_FLAG    (1) 
 
-vector<string> FFTreader::parse(){
+vector<vector<FFTreader::byteType>> FFTreader::parse(){
    
     int right = findStartingPoint();
     int pre_freq = 0, step = sampleFreq/10; 
@@ -34,7 +34,7 @@ vector<string> FFTreader::parse(){
     int pkts = soundTo16bits(peak);
     right += step;
     cout <<"Ready to read pkts:"<< pkts<< endl;
-    vector<vector<int>> data;
+    vector<vector<FFTreader::byteType>> data;
 
     while(pkts-- >0){
 
@@ -44,7 +44,7 @@ vector<string> FFTreader::parse(){
         int datalen = soundTo16bits(peak);
         right += step;
         cout <<"Ready to read data len :"<< datalen<< endl;
-        vector<int> pktdata;
+        vector<FFTreader::byteType> pktdata;
 
         while(datalen > 0){
             if(right >= END) break;
@@ -60,7 +60,7 @@ vector<string> FFTreader::parse(){
             const unsigned short _8bitMask  = 0x00FF;
             
             while(shift-- > 0){
-                int d = content & _8bitMask;  
+                char d = content & _8bitMask;  
                 pktdata.push_back(d);  
                 content >>= 8;
             }
@@ -73,8 +73,8 @@ vector<string> FFTreader::parse(){
 
         data.push_back(pktdata);
     }
-
-    return dataToStrings(data);
+    return data;
+    //return dataToStrings(data);
 }
 vector<string> FFTreader::dataToStrings(vector<std::vector<int>>& data){
 

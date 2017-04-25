@@ -1,3 +1,11 @@
+/**
+* <h1>FFT receiver</h1>
+* The FFT receiver utlizes portaudio and aquila to fetch and parse sound data.
+*
+* @author  Mick Lin cl3469@columbia.edu
+* @version 1.0
+* @since   2017-04-25
+*/
 #include <stdio.h>
 #include <stdlib.h>
 #include "portaudio.h"

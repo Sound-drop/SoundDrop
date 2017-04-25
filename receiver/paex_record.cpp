@@ -13,7 +13,8 @@ int main()
     FFTreader f("recorded.wav",5);
     vector<vector<FFTreader::byteType>> r_bytes = f.parse();
 
- 
+    //In this example, sender will send (ip, user_name, file_path).
+    //We should collect 3 strings into ret.
     vector<string> ret;
 
     for (int pos = 0; pos < r_bytes.size(); pos++){
@@ -38,8 +39,12 @@ int main()
         ret.push_back(ret_str);
     }
 
+    //double check the output
     for (auto& x : ret) cout << x <<endl;
+
     if(ret.size() == 3){
+        //Current string data is cstr, which contains '\0' at end. Parsed it to std::string.
+        //Otherwise, the command will not concatenate correctly. 
         string command = "scp -i ~/.ssh/sounddrop " + string(ret[1].c_str())+"@"+ret[0] + ":" + string(ret[2].c_str()) + " . ";
         cout << command.c_str() << endl;
         system(command.c_str());

@@ -1,3 +1,11 @@
+/**
+* <h1>FFT receiver</h1>
+* The FFT receiver utlizes portaudio and aquila to fetch and parse sound data.
+*
+* @author  Mick Lin cl3469@columbia.edu
+* @version 1.0
+* @since   2017-04-25
+*/
 #include <stdio.h>
 #include <stdlib.h>
 #include "portaudio.h"
@@ -13,17 +21,7 @@
 #include <memory>
 #include <iostream>
 #include <cstdlib>
-#define PA_SAMPLE_TYPE  paInt16
-#define SAMPLE_SILENCE  (0)
-#define PRINTF_S_FORMAT "%d"
-/* #define SAMPLE_RATE  (17932) // Test failure to open with this value. */
-#define SAMPLE_RATE  (44100)
-#define FRAMES_PER_BUFFER (512)
-#define NUM_CHANNELS    (2)
-/* #define DITHER_FLAG     (paDitherOff) */
-#define DITHER_FLAG     (0) /**/
-/** Set to 1 if you want to capture the recording to a file. */
-#define WRITE_TO_FILE   (1)
+
 typedef short SAMPLE;
 
 using namespace std;
@@ -59,7 +57,21 @@ private:
 	void done(FFTreader::paTestData data, PaError err);
 
 public:
+/**
+ * byteType is an alias for unsigned char, which represents a byte (8 bits) of data.
+ */
 	typedef unsigned char byteType;
+/**
+ * Constructor with file path for the recorded file and the number of seconds for recording
+ * @param  file_path  a path to store the recorded .wav
+ * @param  NUM_SECONDS recording time for the wav file
+ */
 	FFTreader(string file_path, int NUM_SECONDS): file_path(file_path),NUM_SECONDS(NUM_SECONDS){}
+/**
+ * FFTreader starts to record the sound through microphone and save the data to a wav file.
+ * Once the wav file is saved, the aquila FFT parsing module will search and parse the pkts to vector<vector<FFTreader::byteType>>.
+ * @return   vector<vector<FFTreader::byteType>>
+ * @see FFTreader::byteType
+ */
 	vector<vector<FFTreader::byteType>> parse();
 };

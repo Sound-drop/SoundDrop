@@ -275,7 +275,7 @@ class StackedBarGrapher:
             ax.set_xlim(-1.*widths[0]/2. - gap/2., np.sum(widths)-widths[0]/2. + gap/2.)
         else:
             ax.set_xlim(-1.*widths[0]/2. + gap/2., np.sum(widths)-widths[0]/2. - gap/2.)
-        ax.set_ylim(0, yTicks[0][-1])#np.max(data_stack))
+            ax.set_ylim(0, yTicks[0][-1])#np.max(data_stack))
 
         # labels
         if xlabel != '':

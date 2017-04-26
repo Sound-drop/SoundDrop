@@ -6,9 +6,9 @@ if len(sys.argv) != 2:
 if " " in sys.argv[1]: 
 	print "file name should not contain space"
 	sys.exit(1)
-file_name = sys.argv[1]
+file_name = sys.argv[1][:-4]
 # print file_name
-csvfile = open(file_name,"r")
+csvfile = open(file_name+".csv","r")
 spamreader = csv.reader(csvfile, delimiter=',')
 
 success = {}
@@ -62,11 +62,11 @@ SBG.stackedBarPlot(ax,
                    scale=False,
                    endGaps=True
                   )
-plt.title("Volume Change Effect")
+plt.title(file_name.replace("_"," "))
 plt.xlabel("Volume Key")
 plt.yticks(np.arange(0, 91, 10))
 plt.ylabel("Success Counts")
-plt.savefig(file_name[:-4]+".png",bbox_inches='tight')
+plt.savefig(file_name+".png",bbox_inches='tight')
 plt.close()
 import commands
-commands.getstatusoutput("open "+file_name[:-4]+".png")
+commands.getstatusoutput("open "+file_name+".png")

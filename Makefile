@@ -31,6 +31,8 @@ transfer: transfer.cpp
 recv: receiver/FFTreader.cpp receiver/paex_record.cpp receiver/write_wav.cpp
 	$(CXX) -o $@ $(CXXFLAGS) receiver/FFTreader.cpp receiver/paex_record.cpp receiver/write_wav.cpp $(STATIC_LIBS) $(INCLUDES) $(LIBS)
 
+test: 
+	echo "run sender and receiver scp program"
 # %.o: %.cpp
 # 	$(CXX) $(CFLAGS) -c $< $(PA_STATIC_LIB) $(INCLUDES) -o $@
 

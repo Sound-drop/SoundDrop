@@ -45,7 +45,8 @@ int main()
     if(ret.size() == 3){
         //Current string data is cstr, which contains '\0' at end. Parsed it to std::string.
         //Otherwise, the command will not concatenate correctly. 
-        string command = "scp -i ~/.ssh/sounddrop " + string(ret[1].c_str())+"@"+ret[0] + ":" + string(ret[2].c_str()) + " . ";
+        string command = "scp -i ~/.ssh/sounddrop " + string(ret[1].c_str())+"@"+ret[0] + 
+        ":" + string(ret[2].c_str()) + " . ";
         cout << command.c_str() << endl;
         system(command.c_str());
     }  

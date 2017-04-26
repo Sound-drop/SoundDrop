@@ -20,14 +20,8 @@ SBG = StackedBarGrapher()
 
 
 N = 8
-ip = []
-user_name = []
-file_path = []
-menStd = [0]*8
-womenStd = [0]*8
-ind = np.arange(N)    # the x locations for the groups
-width = 0.35      
-data_stack = [] # the width of the bars: can also be len(x) sequence
+ind = np.arange(N)    
+data_stack = [] 
 for i in ind:
 	data_stack.append([success[i+1][0],success[i+1][1],success[i+1][2]])
 
@@ -40,6 +34,7 @@ d_widths = [1]*N
 d_labels = [ str(x+1)+" : "+str(float("{0:.2f}".format(float(sum([l for l in success[x+1]]))/90)))+"%"  for x in range(N)]
 legends = ['ip','user name','file path']
 d_colors = ['#2166ac', '#fee090', '#fdbb84']
+
 fig = plt.figure()
 
 ax = fig.add_subplot(111)
@@ -54,7 +49,7 @@ SBG.stackedBarPlot(ax,
                   )
 plt.title("Volume Change Effect")
 plt.xlabel("Volume Key")
-plt.ylabel("Success Counts of out 90")
+plt.ylabel("Success Counts out of 90")
 plt.savefig("measurement.png",bbox_inches='tight')
 plt.close()
 

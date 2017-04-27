@@ -21,7 +21,8 @@ automatically connect and copy the file.
 For running a secure copy (scp) between two hosts as part of the project, 
 host_src and host_dest.
 
-host_src is where the program will run the scp command, host-dest is where it is going.
+host_src (computer running reciever) is where the program will run the scp command,
+host-dest (computer running sender) is where it is going.
 
 On host_src (the one running the scp command) create a key pair for SoundDrop
 

@@ -42,6 +42,11 @@ int main()
     //double check the output
     for (auto& x : ret) cout << x <<endl;
 
+    /* 
+    This section is exclusively for the secure copy application
+    Can be removed if you don't want to run secure copy between computers
+    */
+
     if(ret.size() == 3){
         //Current string data is cstr, which contains '\0' at end. Parsed it to std::string.
         //Otherwise, the command will not concatenate correctly. 
@@ -50,6 +55,9 @@ int main()
         cout << command.c_str() << endl;
         system(command.c_str());
     }  
+
+    // end secure copy section
+
     return 0;
 }
 

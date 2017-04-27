@@ -110,17 +110,17 @@ public:
 
 	/**
 	 * Alternative SoundDrop load function.  This function takes in a vector of 
-	 * vectors of unsigned chars to be parsed and constructed into a SoundDrop 
-	 * data stream compliant with the SoundDrop protocol.  This function is more
-	 * C++ idiomatic because it is type-safe (ie. no void *), but places a heavier
-	 * burden on the user, which is why we implemented two load() functions.  The
-	 * outer vector is the list of "packets", while the inner vector is essentially
-	 * a Packet struct where the vector length is the byte length of the packet 
-	 * and the unsigned chars are the bytes.
-	 * @param   raw_data  vector of unsigned char to be encoded into sound and 
-	 *                    sent by SoundDrop
+	 * vectors of uint8_t to be parsed and constructed into a SoundDrop data
+	 * stream compliant with the SoundDrop protocol.  This function is more C++
+	 * idiomatic because it is type-safe (ie. no void *), but places a heavier
+	 * burden on the user, which is why we implemented two load() functions.  
+	 * The outer vector is the list of "packets", while the inner vector is 
+	 * essentially a Packet struct where the vector length is the byte length of 
+	 * the packet and the unsigned chars are the bytes.
+	 * @param   raw_data  vector of uint8_t to be encoded into sound and sent by 
+	 *                    SoundDrop
 	 */
-	void load(vector<vector<unsigned char>> raw_data);
+	void load(vector<vector<uint8_t>> raw_data);
 
 	/**
 	 * Sends the data loaded into SoundDrop with the load() function.

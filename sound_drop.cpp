@@ -156,14 +156,14 @@ void SoundDrop::load(vector<Packet> packets) {
 	/* All done!  Send transmission when ready... */
 }
 
-void SoundDrop::load(vector<vector<unsigned char>> raw_data) {
+void SoundDrop::load(vector<vector<uint8_t>> raw_data) {
 	/* Clear out any previously set values */
 	data.sine.clear();
 
 	/* Calculate total length of transmission */
 	int byte_len = 0;
 	uint16_t elements = raw_data.size();
-	for (vector<unsigned char> &p : raw_data) {
+	for (vector<uint8_t> &p : raw_data) {
 		byte_len += p.size();
 		byte_len += 2;                       /* Add length field */
 
@@ -194,7 +194,7 @@ void SoundDrop::load(vector<vector<unsigned char>> raw_data) {
 		data.sine.push_back(move(data_point));
 	}
 
-	for (vector<unsigned char> &p : raw_data) {
+	for (vector<uint8_t> &p : raw_data) {
 
 		/* Encode length of packet */
 		vector<double> data_point;

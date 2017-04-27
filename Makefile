@@ -22,8 +22,8 @@ STATIC_LIBS = $(PA_STATIC_LIB) $(AQ_STATIC_LIB)
 
 all: send_file recv
 
-send_file: send_file.cpp sound_drop.h protocol.h
-	$(CXX) $(CXXFLAGS) $< $(PA_STATIC_LIB) -I$(PA_INCLUDE_DIR) $(LIBS) -o $@
+send_file: send_file.cpp sound_drop.cpp sound_drop.h protocol.h
+	$(CXX) $(CXXFLAGS) $< sound_drop.cpp $(PA_STATIC_LIB) -I$(PA_INCLUDE_DIR) $(LIBS) -o $@
 
 transfer: transfer.cpp
 	$(CXX) $(CXXFLAGS) $< $(STATIC_LIBS) $(INCLUDES) $(FLAGS) -o $@
@@ -32,11 +32,10 @@ recv: receiver/FFTreader.cpp receiver/paex_record.cpp receiver/write_wav.cpp
 	$(CXX) -o $@ $(CXXFLAGS) receiver/FFTreader.cpp receiver/paex_record.cpp receiver/write_wav.cpp $(STATIC_LIBS) $(INCLUDES) $(LIBS)
 
 test: 
-	echo "run sender and receiver scp program"
-# %.o: %.cpp
-# 	$(CXX) $(CFLAGS) -c $< $(PA_STATIC_LIB) $(INCLUDES) -o $@
+	echo "run sender (./send_file) and receiver (./recv)"
 
-# %.o: %.c
-# 	$(CXX) $(CFLAGS) -c $< $(STATIC_LIBS) -I$(INCLUDES) -o $@
+docs: 
+	doxygen Doxyfile
+
 clean:
-	rm -rf send_file *.dSYM receiver/*.o recv
+	rm -rf send_file *.dSYM receiver/*.o recv API-Docs

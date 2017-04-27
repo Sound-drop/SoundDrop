@@ -117,9 +117,8 @@ public:
 	 * outer vector is the list of "packets", while the inner vector is essentially
 	 * a Packet struct where the vector length is the byte length of the packet 
 	 * and the unsigned chars are the bytes.
-	 * @param   raw_data  vector of Packets to be encoded into sound and sent 
-	 *                    by SoundDrop
-	 * @see     Packet
+	 * @param   raw_data  vector of unsigned char to be encoded into sound and 
+	 *                    sent by SoundDrop
 	 */
 	void load(vector<vector<unsigned char>> raw_data);
 

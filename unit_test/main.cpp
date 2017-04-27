@@ -27,10 +27,25 @@ int main()
    thread sender(f, ref(data));
    FFTreader rv("recorded.wav",5);
    vector<vector<FFTreader::byteType>> r_bytes = rv.parse(); 
-   for(auto& x: r_bytes) {
-	for(auto&y : x) cout << y << " ";
-	cout << endl;
-   }
    sender.join();
+
+   cout <<"\n\nResult:\n";
+   if(data.size()!=r_bytes.size()){
+      cout<<"unit test failed" <<endl; 
+      return 0;
+   }
+   for(int i=0; i < data.size(); i++) {
+      if(data[i].size()!=r_bytes[i].size()){
+         cout<<"unit test failed" <<endl; 
+         return 0;
+      }
+      for(int j=0 ; j < data[i].size(); j++){
+         if(data[i][j] !=r_bytes[i][j]){
+            cout<<"unit test failed" <<endl; 
+            return 0;
+         }
+      }    
+   }
+   cout << "unit test succeed" << endl;
    return 0;
 }

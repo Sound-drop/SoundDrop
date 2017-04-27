@@ -4,11 +4,11 @@
 #include "../receiver/FFTreader.hpp"
 void f(vector<vector<FFTreader::byteType>>& data) { 
    std::this_thread::sleep_for(std::chrono::milliseconds(500));
-	//sender
-	for(auto& x: data) {
-		for(auto&y : x) cout << y << " ";
-	 	cout << endl;
-   	}
+
+   /* Sender */
+   SoundDrop sd;
+   sd.load(data);
+   sd.send();
 }
 using namespace std;
 int main()

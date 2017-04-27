@@ -226,14 +226,13 @@ vector<vector<FFTreader::byteType>> FFTreader::parse(){
             int content = soundTo16bits(peak);
            
 
-            //if odd, right shift padding
-            if(datalen==1) content >>= 8;
+
 
             int shift = datalen==1 ? 1 : 2;
             const unsigned short _8bitMask  = 0x00FF;
             
             while(shift-- > 0){
-                char d = content & _8bitMask;  
+                FFTreader::byteType d = content & _8bitMask;  
                 pktdata.push_back(d);  
                 content >>= 8;
             }

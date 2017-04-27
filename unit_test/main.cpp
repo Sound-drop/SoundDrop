@@ -31,22 +31,25 @@ int main()
    sender.join();
 
    cout <<"\n\nResult:\n";
+   bool succeed = 1;
    if(data.size()!=r_bytes.size()){
-      cout<<"unit test failed" <<endl; 
+      cout<<"unit test packet size failed" <<endl; 
+      succeed = 0;
       return 0;
    }
    for(int i=0; i < data.size(); i++) {
       if(data[i].size()!=r_bytes[i].size()){
-         cout<< i <<"unit test failed" <<endl; 
-         
+         cout<< i <<"unit test data length failed" <<endl; 
+         succeed = 0;
       }
+      // if(!succeed) break;
       for(int j=0 ; j < data[i].size(); j++){
          if(data[i][j] != r_bytes[i][j]){
-            cout<<(int)data[i][j] <<","<< (int)r_bytes[i][j] <<":"<<"unit test data failed" <<endl; 
-        
+            cout<<i<<","<<j<< " : "<< (int)data[i][j] <<","<< (int)r_bytes[i][j] <<"  :"<<"unit test data failed" <<endl; 
+            succeed = 0;
          }
       }    
    }
-   cout << "unit test succeed" << endl;
+   if(succeed)cout << "unit test succeed" << endl;
    return 0;
 }

@@ -58,9 +58,9 @@ private:
 
 public:
 /**
- * byteType is an alias for unsigned char, which represents a byte (8 bits) of data.
+ * byteType is an alias for unit8_t, which represents a byte (8 bits) of data.
  */
-	typedef unsigned char byteType;
+	typedef uint8_t byteType;
 /**
  * Constructor with file path for the recorded file and the number of seconds for recording
  * @param  file_path  a path to store the recorded .wav

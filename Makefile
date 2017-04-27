@@ -34,8 +34,8 @@ recv: receiver/FFTreader.cpp receiver/paex_record.cpp receiver/write_wav.cpp
 
 test: bin/test
 
-bin/test: receiver/FFTreader.cpp unit_test/main.cpp receiver/write_wav.cpp receiver/FFTreader.hpp receiver/write_wav.h
-	$(CXX) -o $@ $(CXXFLAGS) receiver/FFTreader.cpp unit_test/main.cpp receiver/write_wav.cpp $(STATIC_LIBS) $(INCLUDES)  $(LIBS)
+bin/test: receiver/FFTreader.cpp unit_test/main.cpp receiver/write_wav.cpp sound_drop.cpp receiver/FFTreader.hpp receiver/write_wav.h
+	$(CXX) -o $@ $(CXXFLAGS) receiver/FFTreader.cpp unit_test/main.cpp sound_drop.cpp  receiver/write_wav.cpp $(STATIC_LIBS) $(INCLUDES)  $(LIBS)
 
 
 docs: 

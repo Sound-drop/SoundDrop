@@ -7,6 +7,7 @@ PA_INCLUDE_DIR = $(LIBRARY_SRC)/portaudio/include
 AQ_STATIC_LIB = $(LIBRARY_SRC)/aquila/build/libAquila.a $(LIBRARY_SRC)/aquila/build/lib/libOoura_fft.a
 AQ_INCLUDE_DIR = $(LIBRARY_SRC)/aquila
 
+
 SHELL = /bin/sh
 LIBTOOL = $(SHELL) $(LIBRARY_SRC)/portaudio/libtool
 LIBS = -framework CoreAudio -framework AudioToolbox -framework AudioUnit -framework Carbon
@@ -31,11 +32,14 @@ transfer: transfer.cpp
 recv: receiver/FFTreader.cpp receiver/paex_record.cpp receiver/write_wav.cpp
 	$(CXX) -o $@ $(CXXFLAGS) receiver/FFTreader.cpp receiver/paex_record.cpp receiver/write_wav.cpp $(STATIC_LIBS) $(INCLUDES) $(LIBS)
 
-test: 
-	echo "run sender (./send_file) and receiver (./recv)"
+test: bin/test
+
+bin/test: receiver/FFTreader.cpp unit_test/main.cpp receiver/write_wav.cpp receiver/FFTreader.hpp receiver/write_wav.h
+	$(CXX) -o $@ $(CXXFLAGS) receiver/FFTreader.cpp unit_test/main.cpp receiver/write_wav.cpp $(STATIC_LIBS) $(INCLUDES)  $(LIBS)
+
 
 docs: 
 	doxygen Doxyfile
 
 clean:
-	rm -rf send_file *.dSYM receiver/*.o recv API-Docs
+	rm -rf send_file *.dSYM receiver/*.o recv API-Docs bin/test*

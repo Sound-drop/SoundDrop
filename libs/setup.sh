@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 TARGET="portaudio"
 if [[ ! -d "${TARGET}" ]]; then
 	if [[ ! -d "pa_stable_v190600_20161030.tgz" ]]; then

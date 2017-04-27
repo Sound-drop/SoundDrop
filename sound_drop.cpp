@@ -10,6 +10,7 @@
 
 #include <stdexcept>
 #include <cmath>
+#include <iostream>
 
 #include "sound_drop.h"
 
@@ -50,6 +51,9 @@ int SoundDrop::paCallback( const void                      *inputBuffer,
 }
 
 void SoundDrop::load(vector<Packet> packets) {
+	/* Clear out any previously set values */
+	data.sine.clear();
+
 	/* Calculate total length of transmission */
 	int byte_len = 0;
 	uint16_t elements = packets.size();
@@ -61,7 +65,7 @@ void SoundDrop::load(vector<Packet> packets) {
 	}
 
 	int word_len = byte_len / 2;
-	word_len += 2;                        /* Add start chirp and element count */
+	word_len += 3;                        /* Add start chirp, element count, end chirp */
 
 	int block_len = SR * RATE;
 	data.total_frames = static_cast<double>(block_len * ((double) word_len) / (double) FPB);
@@ -122,7 +126,7 @@ void SoundDrop::load(vector<Packet> packets) {
 			ptr++;
 		}
 
-		/* If odd length data packet, add last byte by itself*/
+		/* If odd length data packet, add last byte by itself */
 		if (p.len % 2 == 1) {
 
 			*ptr = *ptr & 0x00ff;      /* Zero out second byte of ptr */
@@ -144,7 +148,113 @@ void SoundDrop::load(vector<Packet> packets) {
 		/* Done encoding packet, onto the next one! */
 	}
 
-	/* Add stop chirp */
+	/* Add end chirp */
+	for (int i = 0; i < block_len; i++) {
+		data.sine.push_back({stop_chirp});
+	}
+
+	/* All done!  Send transmission when ready... */
+}
+
+void SoundDrop::load(vector<vector<unsigned char>> raw_data) {
+	/* Clear out any previously set values */
+	data.sine.clear();
+
+	/* Calculate total length of transmission */
+	int byte_len = 0;
+	uint16_t elements = raw_data.size();
+	for (vector<unsigned char> &p : raw_data) {
+		byte_len += p.size();
+		byte_len += 2;                       /* Add length field */
+
+		if (p.size() % 2 == 1) byte_len++;   /* Round up packet length to even num */
+	}
+
+	int word_len = byte_len / 2;
+	word_len += 3;                           /* Add start chirp, element count, end chirp */
+
+	int block_len = SR * RATE;
+	data.total_frames = static_cast<double>(block_len * ((double) word_len) / (double) FPB);
+	data.phase = 0;
+
+	/* Add start chirp */
+	for (int i = 0; i < block_len; i++) {
+		data.sine.push_back({start_chirp});
+	}
+
+	/* Add element count */
+	for (int i = 0; i < block_len; i++) {
+		vector<double> data_point;
+		for (uint32_t x = 1, y = 0; x <= (1 << 15); x *= 2, y++) {
+			if (elements & x) {
+				data_point.push_back(encoder[y]);
+			}
+		}
+
+		data.sine.push_back(move(data_point));
+	}
+
+	for (vector<unsigned char> &p : raw_data) {
+
+		/* Encode length of packet */
+		vector<double> data_point;
+		for (int j = 0; j < block_len; j++) {
+
+			/* Encode bits */
+			for (uint32_t x = 1, y = 0; x <= (1 << 15); x *= 2, y++) {
+				if (p.size() & x) {
+					data_point.push_back(encoder[y]);
+				}
+			}
+
+			data.sine.push_back(move(data_point));
+		}
+
+		/* Encode packet data up to even byte */
+		for (int i = 0; i < (p.size() / 2) * 2; i += 2) {
+
+			/* Encode a full block length one byte at a time */
+			vector<double> data_point;
+			for (int j = 0; j < block_len; j++) {
+
+				/* Encode bits */
+				for (uint32_t x = 1, y = 0; x <= (1 << 7); x *= 2, y++) {
+					if (p[i] & x) {
+						data_point.push_back(encoder[y]);
+					}
+
+					if (p[i + 1] & x) {
+						data_point.push_back(encoder[y + 8]);
+					}
+				}
+
+				data.sine.push_back(move(data_point));
+			}
+
+		}
+
+		/* If odd length data packet, add last byte by itself */
+		if (p.size() % 2 == 1) {
+
+			vector<double> data_point;
+			for (int j = 0; j < block_len; j++) {
+
+				/* Encode bits */
+				for (uint32_t x = 1, y = 0; x <= (1 << 7); x *= 2, y++) {
+					if (p[p.size() - 1] & x) {
+						data_point.push_back(encoder[y]);
+					}
+				}
+
+				data.sine.push_back(move(data_point));
+			}
+
+		}
+
+		/* Done encoding packet, onto the next one! */
+	}
+
+	/* Add end chirp */
 	for (int i = 0; i < block_len; i++) {
 		data.sine.push_back({stop_chirp});
 	}

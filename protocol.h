@@ -1,3 +1,13 @@
+/**
+* <h1>SoundDrop Protocol</h1>
+* This protocol is utilized by the SoundDrop library to encode data
+* into sound waves.
+*
+* @author  Jason Zhao zhao.s.jason@columbia.edu
+* @version 1.0
+* @since   2017-04-27
+*/
+
 #ifndef _SD_PROTOCOL_H_
 #define _SD_PROTOCOL_H_
 

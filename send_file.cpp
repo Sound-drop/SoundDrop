@@ -1,3 +1,12 @@
+/**
+* <h1>SoundDrop File Sender</h1>
+* This program utilizes the SoundDrop library to send files over audio.
+*
+* @author  Jason Zhao zhao.s.jason@columbia.edu
+* @version 1.0
+* @since   2017-04-27
+*/
+
 #include <stdio.h>
 #include <string.h>
 #include <math.h>

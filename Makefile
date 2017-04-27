@@ -20,9 +20,9 @@ STATIC_LIBS = $(PA_STATIC_LIB) $(AQ_STATIC_LIB)
 
 
 
-all: send_scp recv
+all: send_file recv
 
-send_scp: send_scp.cpp sound_drop.h protocol.h
+send_file: send_file.cpp sound_drop.h protocol.h
 	$(CXX) $(CXXFLAGS) $< $(PA_STATIC_LIB) -I$(PA_INCLUDE_DIR) $(LIBS) -o $@
 
 transfer: transfer.cpp
@@ -39,4 +39,4 @@ test:
 # %.o: %.c
 # 	$(CXX) $(CFLAGS) -c $< $(STATIC_LIBS) -I$(INCLUDES) -o $@
 clean:
-	rm -rf send_scp test transfer *.dSYM receiver/*.o recv
+	rm -rf send_file *.dSYM receiver/*.o recv

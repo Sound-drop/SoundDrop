@@ -17,6 +17,37 @@ specify a file to send and all devices in the local area (ie. within earshot) wi
 automatically connect and copy the file.
 
 
+### Build
+
+Use the following commands to build the external libs
+```java
+cd libs
+./setup
+cd ..
+make
+```
+
+### Run unit test
+
+Make sure you set your volume key to 4 and point your headphone to your microphone
+
+```java
+make test
+./bin/test
+```
+
+### Run application
+Sender
+```java
+./send_file <file_path>
+```
+Receiver
+```java
+./recv
+```
+
+
+
 #### --- RSA KEY PAIR SETUP ---
 For running a secure copy (scp) between two hosts as part of the project, 
 host_src and host_dest.

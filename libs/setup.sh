@@ -20,7 +20,12 @@ if [[ ! -d "${TARGET}" ]]; then
 	
 	echo "Done building ${TARGET}!"
 else
-	echo "Seems like you already have ${TARGET} built here!  Skipping..."
+	echo "Building ${TARGET}..."
+	cd "${TARGET}"
+	make clean
+	./configure && make
+	cd ..
+	echo "Done building ${TARGET}!"
 fi
 
 TARGET="aquila"
@@ -35,7 +40,12 @@ if [[ ! -d "${TARGET}" ]]; then
 	
 	echo "Done building ${TARGET}!"
 else
-	echo "Seems like you already have ${TARGET} built here!  Skipping..."
+	echo "Building ${TARGET}..."
+	cd "${TARGET}" && cd build
+	rm -rf *
+	cmake .. && make
+	cd ../..
+	echo "Done building ${TARGET}!"
 fi
 
 echo "Done building libraries!"

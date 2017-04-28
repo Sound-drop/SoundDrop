@@ -20,10 +20,9 @@ automatically connect and copy the file.
 ### Build
 
 Use the following commands to build the external libs
+
 ```java
-cd libs
-./setup
-cd ..
+make build_libs
 make
 ```
 
@@ -54,8 +53,7 @@ make: *** [send_file] Error 1
 ```
 Solution
 ```java
-cd libs
-./setup
+make build_libs
 ```
 
 #### --- RSA KEY PAIR SETUP ---

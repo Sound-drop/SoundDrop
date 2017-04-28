@@ -46,7 +46,17 @@ Receiver
 ./recv
 ```
 
+### Build issues
 
+```java
+clang: error: no such file or directory: 'libs/portaudio/lib/.libs/libportaudio.a'
+make: *** [send_file] Error 1
+```
+Solution
+```java
+cd libs
+./setup
+```
 
 #### --- RSA KEY PAIR SETUP ---
 For running a secure copy (scp) between two hosts as part of the project, 

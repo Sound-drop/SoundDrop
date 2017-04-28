@@ -26,8 +26,8 @@ int main()
    		data.push_back(chunk);
    }
    thread sender(f, ref(data));
-   FFTreader rv("recorded.wav",5);
-   vector<vector<FFTreader::byteType>> r_bytes = rv.parse(); 
+   FFTreader receiver("recorded.wav",5);
+   vector<vector<FFTreader::byteType>> r_bytes = receiver.parse(); 
    sender.join();
 
    cout <<"\n\nResult:\n";
@@ -40,7 +40,7 @@ int main()
          cout<< i <<"unit test data length failed" <<endl; 
          return 0;
       }
-      // if(!succeed) break;
+
       for(int j=0 ; j < data[i].size(); j++){
          if(data[i][j] != r_bytes[i][j]){
             cout<<i<<","<<j<< " : "<< (int)data[i][j] <<","<< (int)r_bytes[i][j] <<"  :"<<"unit test data failed" <<endl; 

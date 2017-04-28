@@ -41,5 +41,9 @@ bin/test: receiver/FFTreader.cpp unit_test/main.cpp receiver/write_wav.cpp sound
 docs: 
 	doxygen Doxyfile
 
+clean_libs:
+	rm -rf /libs/aquila/build
+	cd libs/portaudio && make clean
+
 clean:
 	rm -rf send_file *.dSYM receiver/*.o recv API-Docs bin/test*
